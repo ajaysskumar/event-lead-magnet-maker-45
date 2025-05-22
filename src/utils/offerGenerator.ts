@@ -1,4 +1,3 @@
-
 import { FormData } from "@/components/OfferCreationForm";
 
 export interface OfferOption {
@@ -56,40 +55,46 @@ export const generateOffers = (formData: FormData): OfferOption[] => {
   const shortPhrase = incentivePhrases[0].trim();
   titleOptions.push(shortPhrase.length < 50 ? shortPhrase : `${incentiveKeyword} ${secondKeyword} Access`.trim());
   
-  // Description generation based on incentive description
+  // Description generation - use the full incentive description more prominently
   const createCustomDescription = () => {
+    // Use the full incentive description if it's not too long
+    if (incentiveDescription.length < 120 && !incentiveDescription.toLowerCase().includes('lorem ipsum')) {
+      return `${incentiveDescription} Collect this offer to secure your spot!`;
+    }
+    
+    // Otherwise, use a shorter version
     const firstSentence = getIncentiveBasedSentence(secondaryActions, incentiveDescription);
     return `${firstSentence} Collect this offer to secure your spot!`;
   };
   
   const getIncentiveBasedSentence = (actions: string[], incentive: string) => {
     // If incentive is already short and compelling, use it directly
-    if (incentive.length < 50 && !incentive.toLowerCase().includes('lorem ipsum')) {
+    if (incentive.length < 80 && !incentive.toLowerCase().includes('lorem ipsum')) {
       return incentive;
+    }
+    
+    // Extract a compelling fragment from the incentive description
+    const sentences = incentive.split(/[.!?]/);
+    const shortestSentence = sentences
+      .filter(s => s.trim().length > 10)
+      .sort((a, b) => a.length - b.length)[0];
+    
+    if (shortestSentence && shortestSentence.length < 100) {
+      return shortestSentence.trim();
     }
     
     // Create more personalized first sentences based on secondary actions
     if (actions.includes("Demo")) {
-      return `Get hands-on with our latest technology through a personalized demo.`;
+      return `Get hands-on with our latest technology through a personalized demo. ${incentive.substring(0, 60)}...`;
     } else if (actions.includes("Discount")) {
-      return `Enjoy special event pricing available only for a limited time.`;
+      return `Enjoy special event pricing available only for a limited time. ${incentive.substring(0, 60)}...`;
     } else if (actions.includes("Giveaway")) {
-      return `Enter our exclusive giveaway with limited entries accepted.`;
+      return `Enter our exclusive giveaway with limited entries accepted. ${incentive.substring(0, 60)}...`;
     } else if (actions.includes("Free Consultation")) {
-      return `Receive expert advice tailored to your specific needs.`;
+      return `Receive expert advice tailored to your specific needs. ${incentive.substring(0, 60)}...`;
     } else if (actions.includes("Exclusive Access")) {
-      return `Gain early access to our newest offerings before the general public.`;
+      return `Gain early access to our newest offerings before the general public. ${incentive.substring(0, 60)}...`;
     } else {
-      // Extract a compelling fragment from the incentive description
-      const sentences = incentive.split(/[.!?]/);
-      const shortestSentence = sentences
-        .filter(s => s.trim().length > 10)
-        .sort((a, b) => a.length - b.length)[0];
-      
-      if (shortestSentence && shortestSentence.length < 100) {
-        return shortestSentence.trim();
-      }
-      
       // If we can't find a good sentence, create one from the incentive
       const shortIncentive = incentive.length > 80 ? 
         `${incentive.substring(0, 80)}...` : 
@@ -100,27 +105,41 @@ export const generateOffers = (formData: FormData): OfferOption[] => {
   };
   
   descriptionOptions.push(createCustomDescription());
-  descriptionOptions.push(`Don't miss this opportunity: ${getIncentiveBasedSentence(secondaryActions, incentiveDescription)} Limited availability at our booth!`);
-  descriptionOptions.push(`Exclusive for ${eventName} attendees. Collect now to unlock the full details and benefits.`);
+  descriptionOptions.push(`${getIncentiveBasedSentence(secondaryActions, incentiveDescription)} Limited availability at our booth!`);
+  descriptionOptions.push(`Exclusive for ${eventName} attendees: ${getIncentiveBasedSentence(secondaryActions, incentiveDescription)}`);
   
-  // Redemption steps generation - more specific and practical
+  // Redemption steps - include specific details from the incentive
+  const addIncentiveToRedemption = (steps: string[]): string[] => {
+    if (incentiveDescription.length < 80) {
+      // For short incentives, add as a specific step
+      return [...steps.slice(0, -1), `Ask about "${incentiveDescription.substring(0, 60)}"`, steps[steps.length - 1]];
+    } else {
+      // For longer incentives, extract keyword
+      const keyword = incentiveKeyword.charAt(0).toUpperCase() + incentiveKeyword.slice(1);
+      steps[1] = `Show this offer and ask about our "${keyword}" special`;
+      return steps;
+    }
+  };
+  
   const boothText = `Visit our booth${goal.includes("traffic") ? " #XXX at " + eventName : ""}`;
   
-  const redemptionSet1 = [
+  let redemptionSet1 = [
     boothText,
     "Show this collected offer to our staff",
     `Mention "${secondaryActions[0] || "special offer"}"`,
     "Get immediate access to your benefit"
   ];
+  redemptionSet1 = addIncentiveToRedemption(redemptionSet1);
   
-  const redemptionSet2 = [
+  let redemptionSet2 = [
     `Find us at ${eventName}`,
     "Scan our QR code at the registration desk",
     "Complete a quick digital form",
     "Receive your exclusive access immediately"
   ];
+  redemptionSet2 = addIncentiveToRedemption(redemptionSet2);
   
-  const redemptionSet3 = [
+  let redemptionSet3 = [
     "Stop by our booth during exhibition hours",
     `Ask about the ${incentiveKeyword} offering`,
     "Share your contact information",
