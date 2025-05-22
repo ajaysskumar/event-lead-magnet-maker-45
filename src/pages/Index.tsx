@@ -1,12 +1,59 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from "react";
+import OfferCreationForm, { FormData } from "@/components/OfferCreationForm";
+import OfferDisplay from "@/components/OfferDisplay";
+import { generateOffers, OfferOption } from "@/utils/offerGenerator";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
+  const [step, setStep] = useState<"form" | "results">("form");
+  const [offers, setOffers] = useState<OfferOption[]>([]);
+  const { toast } = useToast();
+
+  const handleFormSubmit = (data: FormData) => {
+    try {
+      const generatedOffers = generateOffers(data);
+      setOffers(generatedOffers);
+      setStep("results");
+      toast({
+        title: "Offers Generated",
+        description: "Choose the offer that best fits your needs.",
+      });
+    } catch (error) {
+      console.error("Error generating offers:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate offers. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReset = () => {
+    setStep("form");
+    setOffers([]);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="container py-8 px-4 sm:px-6 lg:px-8">
+      <header className="text-center mb-10">
+        <h1 className="text-3xl font-bold tracking-tight mb-2">Event Offer Creator</h1>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Create compelling event offers that help you achieve your goals and drive engagement with your booth visitors.
+        </p>
+      </header>
+
+      <main>
+        {step === "form" ? (
+          <OfferCreationForm onSubmit={handleFormSubmit} />
+        ) : (
+          <OfferDisplay offers={offers} onReset={handleReset} />
+        )}
+      </main>
+
+      <footer className="mt-16 text-center text-sm text-muted-foreground">
+        <p>&copy; {new Date().getFullYear()} Event Offer Creator. All rights reserved.</p>
+      </footer>
     </div>
   );
 };
