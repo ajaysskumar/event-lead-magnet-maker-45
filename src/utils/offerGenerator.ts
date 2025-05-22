@@ -11,40 +11,71 @@ export const generateOffers = (formData: FormData): OfferOption[] => {
   // Extract key information for the prompt
   const { exhibitorName, eventName, goal, secondaryActions, incentiveDescription } = formData;
   
-  // Generate different titles based on goal and actions
+  // Generate different titles based on goal, actions and incentive
   let titleOptions: string[] = [];
   let descriptionOptions: string[] = [];
   let redemptionStepsOptions: string[][] = [];
   
-  // Title generation based on goal and secondary actions
+  // Extract main keywords from incentive description
+  const incentiveWords = incentiveDescription
+    .split(' ')
+    .filter(word => word.length > 3)
+    .slice(0, 3);
+  
+  const incentiveKeyword = incentiveWords.length > 0 
+    ? incentiveWords[0] 
+    : secondaryActions[0] || "Exclusive";
+  
+  // Title generation focusing on incentive and exhibitor
   if (goal.includes("leads")) {
-    titleOptions.push(`Exclusive ${eventName} offer from ${exhibitorName}`);
-    titleOptions.push(`Limited-time ${secondaryActions[0]} opportunity at ${eventName}`);
+    titleOptions.push(`${exhibitorName} ${incentiveKeyword} Opportunity`);
+    titleOptions.push(`${incentiveKeyword} from ${exhibitorName}`);
   } else if (goal.includes("brand")) {
-    titleOptions.push(`Experience ${exhibitorName} at ${eventName}`);
-    titleOptions.push(`${exhibitorName} ${secondaryActions[0]} - ${eventName} Special`);
+    titleOptions.push(`Experience ${exhibitorName}'s ${incentiveKeyword}`);
+    titleOptions.push(`${exhibitorName} ${secondaryActions[0] || "Experience"}`);
   } else {
-    titleOptions.push(`${exhibitorName} ${secondaryActions[0]} at ${eventName}`);
-    titleOptions.push(`Special ${eventName} ${secondaryActions[0]} by ${exhibitorName}`);
+    titleOptions.push(`${exhibitorName} ${secondaryActions[0] || "Special"}`);
+    titleOptions.push(`${incentiveKeyword} by ${exhibitorName}`);
   }
   
-  // Add one more creative option
-  titleOptions.push(`${secondaryActions[0] || "Exclusive"} ${eventName} Opportunity - ${exhibitorName}`);
+  // Add one more creative option based on incentive
+  titleOptions.push(`${exhibitorName} ${secondaryActions[0] || ""} ${incentiveKeyword}`.trim());
   
-  // Description generation based on goal and incentive
-  if (secondaryActions.includes("Demo")) {
-    descriptionOptions.push(`See our product in action! Collect this offer to schedule your personal demo at ${eventName}. Limited slots available.`);
-  } else if (secondaryActions.includes("Discount")) {
-    descriptionOptions.push(`Special ${eventName} pricing! Collect this offer to unlock exclusive discounts only available during the event.`);
-  } else if (secondaryActions.includes("Giveaway")) {
-    descriptionOptions.push(`Win big with ${exhibitorName}! Collect this offer to enter our ${eventName} giveaway. Limited entries accepted.`);
-  } else {
-    descriptionOptions.push(`Don't miss out on our exclusive ${eventName} offer. Collect now to secure your spot!`);
-  }
+  // Description generation based on incentive description
+  const createCustomDescription = () => {
+    const firstSentence = getIncentiveBasedSentence(secondaryActions, incentiveDescription);
+    return `${firstSentence} Collect this offer to secure your spot!`;
+  };
   
-  // Add more description options
-  descriptionOptions.push(`${exhibitorName} presents a special opportunity at ${eventName}. Collect this offer to unlock the details!`);
-  descriptionOptions.push(`Collect this exclusive ${eventName} offer from ${exhibitorName}. Limited availability!`);
+  const getIncentiveBasedSentence = (actions: string[], incentive: string) => {
+    if (incentive.length < 15) {
+      return `Don't miss ${exhibitorName}'s exclusive offer.`;
+    }
+    
+    // Create more personalized first sentences based on secondary actions
+    if (actions.includes("Demo")) {
+      return `See our product in action with a personalized demo.`;
+    } else if (actions.includes("Discount")) {
+      return `Access special pricing only available to event attendees.`;
+    } else if (actions.includes("Giveaway")) {
+      return `Join our exclusive giveaway with limited entries accepted.`;
+    } else if (actions.includes("Free Consultation")) {
+      return `Get expert advice with our complimentary consultation.`;
+    } else if (actions.includes("Exclusive Access")) {
+      return `Gain privileged access to our latest offerings.`;
+    } else {
+      // Use parts of the incentive description itself
+      const shortIncentive = incentive.length > 50 ? 
+        `${incentive.substring(0, 50)}...` : 
+        incentive;
+      
+      return `${shortIncentive}`;
+    }
+  };
+  
+  descriptionOptions.push(createCustomDescription());
+  descriptionOptions.push(`${exhibitorName} presents: ${getIncentiveBasedSentence(secondaryActions, incentiveDescription)} Limited availability!`);
+  descriptionOptions.push(`Exclusive opportunity from ${exhibitorName}. Collect now to unlock the details!`);
   
   // Redemption steps generation
   const redemptionSet1 = [
@@ -55,7 +86,7 @@ export const generateOffers = (formData: FormData): OfferOption[] => {
   ];
   
   const redemptionSet2 = [
-    `Find us at the ${eventName} event space`,
+    `Find us at the event space`,
     "Mention the offer code: EVENT2024",
     "Share your business card or contact info",
     "We'll set up your benefit within 24 hours"
@@ -77,8 +108,8 @@ export const generateOffers = (formData: FormData): OfferOption[] => {
   
   for (let i = 0; i < 3; i++) {
     offers.push({
-      title: titleOptions[i] || `${exhibitorName} at ${eventName} - Special Offer`,
-      description: descriptionOptions[i % descriptionOptions.length] || `Exclusive offer from ${exhibitorName} at ${eventName}. Collect now to learn more!`,
+      title: titleOptions[i] || `${exhibitorName} Special Offer`,
+      description: descriptionOptions[i % descriptionOptions.length] || `Exclusive offer from ${exhibitorName}. Collect now to learn more!`,
       redemptionSteps: redemptionStepsOptions[i % redemptionStepsOptions.length]
     });
   }
