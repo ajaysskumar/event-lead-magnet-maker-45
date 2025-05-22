@@ -111,7 +111,7 @@ const OfferCreationForm = ({ onSubmit }: OfferCreationFormProps) => {
       <CardHeader>
         <CardTitle>Create an Offer</CardTitle>
         <CardDescription>
-          Step {step} of 4: {step === 1 ? "Basic Info" : step === 2 ? "Select Goal" : step === 3 ? "Select Action Type" : "Describe Incentive"}
+          Step {step} of 4: {step === 1 ? "Basic Info" : step === 2 ? "Select Goal" : step === 3 ? "Select Incentive Type" : "Describe Incentive"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -174,7 +174,7 @@ const OfferCreationForm = ({ onSubmit }: OfferCreationFormProps) => {
           {step === 3 && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Select Action Types (select multiple)</Label>
+                <Label>Select Incentive Type (select multiple)</Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {secondaryActions.map((action) => (
                     <Badge
