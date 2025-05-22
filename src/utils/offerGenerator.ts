@@ -22,24 +22,39 @@ export const generateOffers = (formData: FormData): OfferOption[] => {
     .filter(word => word.length > 3)
     .slice(0, 3);
   
-  const incentiveKeyword = incentiveWords.length > 0 
-    ? incentiveWords[0] 
-    : secondaryActions[0] || "Exclusive";
+  // Get keywords for title generation
+  const keywordExtractor = () => {
+    // Find adjectives and nouns in the incentive description
+    const words = incentiveDescription.toLowerCase().split(/\s+/);
+    const potentialKeywords = words.filter(word => 
+      word.length > 3 && 
+      !['with', 'that', 'this', 'from', 'your', 'will', 'have', 'more'].includes(word)
+    );
+    
+    return potentialKeywords.length > 0 
+      ? potentialKeywords[Math.floor(Math.random() * potentialKeywords.length)] 
+      : secondaryActions[0] || "Special";
+  };
   
-  // Title generation focusing on incentive and exhibitor
+  const incentiveKeyword = keywordExtractor();
+  const secondKeyword = keywordExtractor();
+  
+  // Title generation focusing on the incentive more directly
   if (goal.includes("leads")) {
-    titleOptions.push(`${exhibitorName} ${incentiveKeyword} Opportunity`);
-    titleOptions.push(`${incentiveKeyword} from ${exhibitorName}`);
+    titleOptions.push(`Exclusive ${incentiveKeyword} Opportunity`);
+    titleOptions.push(`${incentiveKeyword} Access for ${eventName} Attendees`);
   } else if (goal.includes("brand")) {
-    titleOptions.push(`Experience ${exhibitorName}'s ${incentiveKeyword}`);
-    titleOptions.push(`${exhibitorName} ${secondaryActions[0] || "Experience"}`);
+    titleOptions.push(`Experience Our ${incentiveKeyword} ${secondKeyword}`.trim());
+    titleOptions.push(`${incentiveKeyword} ${secondaryActions[0] || "Experience"}`.trim());
   } else {
-    titleOptions.push(`${exhibitorName} ${secondaryActions[0] || "Special"}`);
-    titleOptions.push(`${incentiveKeyword} by ${exhibitorName}`);
+    titleOptions.push(`${secondaryActions[0] || "Special"} ${incentiveKeyword}`.trim());
+    titleOptions.push(`Limited ${eventName} ${incentiveKeyword} Access`.trim());
   }
   
   // Add one more creative option based on incentive
-  titleOptions.push(`${exhibitorName} ${secondaryActions[0] || ""} ${incentiveKeyword}`.trim());
+  const incentivePhrases = incentiveDescription.split(/[.,!?]/);
+  const shortPhrase = incentivePhrases[0].trim();
+  titleOptions.push(shortPhrase.length < 50 ? shortPhrase : `${incentiveKeyword} ${secondKeyword} Access`.trim());
   
   // Description generation based on incentive description
   const createCustomDescription = () => {
@@ -48,55 +63,68 @@ export const generateOffers = (formData: FormData): OfferOption[] => {
   };
   
   const getIncentiveBasedSentence = (actions: string[], incentive: string) => {
-    if (incentive.length < 15) {
-      return `Don't miss ${exhibitorName}'s exclusive offer.`;
+    // If incentive is already short and compelling, use it directly
+    if (incentive.length < 50 && !incentive.toLowerCase().includes('lorem ipsum')) {
+      return incentive;
     }
     
     // Create more personalized first sentences based on secondary actions
     if (actions.includes("Demo")) {
-      return `See our product in action with a personalized demo.`;
+      return `Get hands-on with our latest technology through a personalized demo.`;
     } else if (actions.includes("Discount")) {
-      return `Access special pricing only available to event attendees.`;
+      return `Enjoy special event pricing available only for a limited time.`;
     } else if (actions.includes("Giveaway")) {
-      return `Join our exclusive giveaway with limited entries accepted.`;
+      return `Enter our exclusive giveaway with limited entries accepted.`;
     } else if (actions.includes("Free Consultation")) {
-      return `Get expert advice with our complimentary consultation.`;
+      return `Receive expert advice tailored to your specific needs.`;
     } else if (actions.includes("Exclusive Access")) {
-      return `Gain privileged access to our latest offerings.`;
+      return `Gain early access to our newest offerings before the general public.`;
     } else {
-      // Use parts of the incentive description itself
-      const shortIncentive = incentive.length > 50 ? 
-        `${incentive.substring(0, 50)}...` : 
+      // Extract a compelling fragment from the incentive description
+      const sentences = incentive.split(/[.!?]/);
+      const shortestSentence = sentences
+        .filter(s => s.trim().length > 10)
+        .sort((a, b) => a.length - b.length)[0];
+      
+      if (shortestSentence && shortestSentence.length < 100) {
+        return shortestSentence.trim();
+      }
+      
+      // If we can't find a good sentence, create one from the incentive
+      const shortIncentive = incentive.length > 80 ? 
+        `${incentive.substring(0, 80)}...` : 
         incentive;
       
-      return `${shortIncentive}`;
+      return shortIncentive;
     }
   };
   
   descriptionOptions.push(createCustomDescription());
-  descriptionOptions.push(`${exhibitorName} presents: ${getIncentiveBasedSentence(secondaryActions, incentiveDescription)} Limited availability!`);
-  descriptionOptions.push(`Exclusive opportunity from ${exhibitorName}. Collect now to unlock the details!`);
+  descriptionOptions.push(`Don't miss this opportunity: ${getIncentiveBasedSentence(secondaryActions, incentiveDescription)} Limited availability at our booth!`);
+  descriptionOptions.push(`Exclusive for ${eventName} attendees. Collect now to unlock the full details and benefits.`);
   
-  // Redemption steps generation
+  // Redemption steps generation - more specific and practical
+  const boothText = `Visit our booth${goal.includes("traffic") ? " #XXX at " + eventName : ""}`;
+  
   const redemptionSet1 = [
-    `Visit ${exhibitorName} at booth #XXX`,
-    "Show the collected offer to our staff",
-    "Complete a quick demo/consultation",
-    "Receive your exclusive benefit immediately"
+    boothText,
+    "Show this collected offer to our staff",
+    `Mention "${secondaryActions[0] || "special offer"}"`,
+    "Get immediate access to your benefit"
   ];
   
   const redemptionSet2 = [
-    `Find us at the event space`,
-    "Mention the offer code: EVENT2024",
-    "Share your business card or contact info",
-    "We'll set up your benefit within 24 hours"
+    `Find us at ${eventName}`,
+    "Scan our QR code at the registration desk",
+    "Complete a quick digital form",
+    "Receive your exclusive access immediately"
   ];
   
   const redemptionSet3 = [
-    "Scan the QR code at our registration desk",
-    `Tell our team you're here for the "${secondaryActions[0] || "special"}" offer`,
-    "Complete a brief preferences form",
-    "Get immediate access to your exclusive benefit"
+    "Stop by our booth during exhibition hours",
+    `Ask about the ${incentiveKeyword} offering`,
+    "Share your contact information",
+    "Our team will set up your benefit on the spot"
   ];
   
   redemptionStepsOptions.push(redemptionSet1);
@@ -108,8 +136,8 @@ export const generateOffers = (formData: FormData): OfferOption[] => {
   
   for (let i = 0; i < 3; i++) {
     offers.push({
-      title: titleOptions[i] || `${exhibitorName} Special Offer`,
-      description: descriptionOptions[i % descriptionOptions.length] || `Exclusive offer from ${exhibitorName}. Collect now to learn more!`,
+      title: titleOptions[i] || `Special ${eventName} Offer`,
+      description: descriptionOptions[i % descriptionOptions.length] || `Exclusive offer for ${eventName} attendees. Collect now to learn more!`,
       redemptionSteps: redemptionStepsOptions[i % redemptionStepsOptions.length]
     });
   }

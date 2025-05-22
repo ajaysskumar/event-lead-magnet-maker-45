@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OfferOption } from "@/utils/offerGenerator";
-import { Check, Copy, Ticket } from "lucide-react";
+import { Check, Copy, MapPin, ArrowRight } from "lucide-react";
 
 interface OfferDisplayProps {
   offers: OfferOption[];
@@ -56,16 +56,22 @@ ${selectedOffer.redemptionSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')
             
             {offers.map((offer, index) => (
               <TabsContent key={index} value={`offer${index + 1}`} className="mt-0">
-                <Card className="border-2 hover:border-primary/50 transition-all">
+                <Card className="border-2 hover:border-primary/50 transition-all bg-blue-50">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Ticket className="h-5 w-5" />
+                    <CardTitle className="text-2xl font-bold text-gray-800">
                       {offer.title}
                     </CardTitle>
-                    <CardDescription className="text-base">{offer.description}</CardDescription>
+                    <CardDescription className="text-base mt-2 mb-4 text-gray-700">
+                      {offer.description}
+                    </CardDescription>
                   </CardHeader>
                   <CardFooter className="flex justify-center pt-2 pb-6">
-                    <Button onClick={() => handleCollectOffer(offer)}>Collect Offer</Button>
+                    <Button 
+                      onClick={() => handleCollectOffer(offer)}
+                      className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-md"
+                    >
+                      Collect Offer
+                    </Button>
                   </CardFooter>
                 </Card>
               </TabsContent>
@@ -77,39 +83,66 @@ ${selectedOffer.redemptionSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')
           </div>
         </>
       ) : (
-        <Card className="border-2 border-primary/50 transition-all">
-          <CardHeader>
+        <Card className="border-none rounded-xl shadow-md overflow-hidden bg-blue-50">
+          <div className="bg-white p-6 pb-4">
             <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Ticket className="h-5 w-5" />
+              <div className="flex-1">
+                <CardTitle className="text-2xl font-bold text-gray-800">
                   {selectedOffer?.title}
                 </CardTitle>
-                <CardDescription className="text-base mt-2">{selectedOffer?.description}</CardDescription>
+                <CardDescription className="text-base mt-3 mb-2 text-gray-700">
+                  {selectedOffer?.description}
+                </CardDescription>
               </div>
+              <div className="bg-green-600 rounded-full p-3 flex items-center justify-center">
+                <Check className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </div>
+          
+          <CardContent className="px-6 py-5">
+            <h3 className="text-xl font-semibold mb-4">Steps to redeem</h3>
+            <ol className="space-y-3 list-none">
+              {selectedOffer?.redemptionSteps.map((step, index) => (
+                <li key={index} className="flex gap-3">
+                  <div className="flex-shrink-0 flex items-center justify-center w-8 h-8">
+                    <span className="flex items-center justify-center w-8 h-8 text-lg font-semibold">
+                      {index + 1}.
+                    </span>
+                  </div>
+                  <span className="text-gray-700">{step}</span>
+                </li>
+              ))}
+            </ol>
+            
+            <div className="mt-6 flex justify-center">
               <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={handleCopyToClipboard}
-                className="h-9 w-9"
+                className="w-full py-4 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-200 rounded-full flex items-center justify-center gap-3"
+                variant="outline"
               >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                <MapPin className="h-5 w-5" />
+                <span className="text-lg">Stand N4-514</span>
+                <ArrowRight className="h-5 w-5" />
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Redemption Steps:</h3>
-              <ol className="space-y-2 list-decimal list-inside">
-                {selectedOffer?.redemptionSteps.map((step, index) => (
-                  <li key={index} className="text-muted-foreground">{step}</li>
-                ))}
-              </ol>
-            </div>
           </CardContent>
-          <CardFooter className="flex justify-between pt-6">
-            <Button variant="outline" onClick={() => setShowRedemption(false)}>Back to Offers</Button>
-            <Button variant="outline" onClick={onReset}>Start Over</Button>
+          
+          <CardFooter className="flex justify-between pt-0 pb-6 px-6 gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => setShowRedemption(false)}
+              className="flex-1"
+            >
+              Back to Offers
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleCopyToClipboard}
+              className="flex-1 flex items-center justify-center gap-2"
+            >
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? "Copied" : "Copy Offer"}
+            </Button>
           </CardFooter>
         </Card>
       )}
