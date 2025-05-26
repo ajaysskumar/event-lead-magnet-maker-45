@@ -10,9 +10,9 @@ const Index = () => {
   const [offers, setOffers] = useState<OfferOption[]>([]);
   const { toast } = useToast();
 
-  const handleFormSubmit = (data: FormData) => {
+  const handleFormSubmit = async (data: FormData) => {
     try {
-      const generatedOffers = generateOffers(data);
+      const generatedOffers = await generateOffers(data);
       setOffers(generatedOffers);
       setStep("results");
       toast({

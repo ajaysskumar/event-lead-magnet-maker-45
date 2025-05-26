@@ -1,4 +1,5 @@
 import { FormData } from "@/components/OfferCreationForm";
+import { OpenAIService } from "./openaiService";
 
 export interface OfferOption {
   title: string;
@@ -6,10 +7,40 @@ export interface OfferOption {
   redemptionSteps: string[];
 }
 
-export const generateOffers = (formData: FormData): OfferOption[] => {
+export const generateOffers = async (formData: FormData): Promise<OfferOption[]> => {
   // Extract key information for the prompt
   const { exhibitorName, eventName, goal, secondaryActions, incentiveDescription } = formData;
-  
+
+  // Initialize OpenAIService using Vite env variable
+  const openai = new OpenAIService(import.meta.env.VITE_OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY');
+
+  // Compose a prompt for OpenAI that instructs it to ONLY reply with a valid JSON array of OfferOption objects
+  const prompt = `You are an expert event marketer. Given the following context, generate an array of 3 JSON objects, each matching this TypeScript interface:\n\ninterface OfferOption { title: string; description: string; redemptionSteps: string[]; }\n\nReply ONLY with a valid JSON array of OfferOption objects, not even a single extra text, just plain minified json as text, not inside code block.\n\nContext:\nExhibitor: ${exhibitorName}\nEvent: ${eventName}\nGoal: ${goal}\nActions: ${secondaryActions.join(", ")}\nIncentive: ${incentiveDescription}`;
+
+  // Call OpenAI API (this is just a sample usage, adapt as needed)
+  try {
+    const response = await openai.sendMessage({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant for event marketing.' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 512
+    });
+    // Parse the OpenAI response as JSON and return it as the offers array
+    let offers: OfferOption[] = [];
+    try {
+      console.log('OpenAI response:', response);
+      offers = JSON.parse(response.choices[0].message.content);
+    } catch (e) {
+      console.error('Failed to parse OpenAI response as JSON:', e);
+    }
+    return offers;
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+  }
+
   // Generate different titles based on goal, actions and incentive
   let titleOptions: string[] = [];
   let descriptionOptions: string[] = [];
