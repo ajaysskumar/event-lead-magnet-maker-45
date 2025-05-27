@@ -115,16 +115,16 @@ ${selectedOffer.redemptionSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')
               ))}
             </ol>
             
-            <div className="mt-6 flex justify-center">
+            {selectedOffer.stand && <div className="mt-6 flex justify-center">
               <Button 
                 className="w-full py-4 bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-200 rounded-full flex items-center justify-center gap-3"
                 variant="outline"
               >
                 <MapPin className="h-5 w-5" />
-                <span className="text-lg">Stand N4-514</span>
+                <span className="text-lg">Stand {selectedOffer.stand}</span>
                 <ArrowRight className="h-5 w-5" />
               </Button>
-            </div>
+            </div>}
           </CardContent>
           
           <CardFooter className="flex justify-between pt-0 pb-6 px-6 gap-2">
